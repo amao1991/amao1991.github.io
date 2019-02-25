@@ -1282,7 +1282,7 @@ input, select, textarea {
 		#header .logo img {
 			width: 5.5rem;
 			height: 5.5rem;
-			border-radius: 100%;
+			border-radius: 80%;
 		}
 
 		#header .content {
@@ -1436,7 +1436,7 @@ input, select, textarea {
 			#header .logo img{
 				width: 4.75rem;
 				height: 4.75rem;
-				border-radius: 100%;
+				border-radius: 80%;
 			}
 
 			#header .content .inner {
