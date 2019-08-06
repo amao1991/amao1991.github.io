@@ -1,120 +1,49 @@
 <!DOCTYPE HTML>
 <!--
-	Dimension by HTML5 UP
+	Aerial by HTML5 UP
 	html5up.net | @ajlkn
 	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
 -->
 <html>
 	<head>
-		<title>Elmo</title>
+		<title>Aerial by HTML5 UP</title>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="stylesheet" href="assets/css/main.css" />
 		<noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
 	</head>
 	<body class="is-preload">
-
-		<!-- Wrapper -->
 		<div id="wrapper">
-
-			<!-- Header -->
-			<header id="header">
-				<div class="logo">
-					<!-- <span class="fas fa-terminal"></span> -->
-					<img src="images/me.jpg" alt="" />
-				</div>
-				<div class="content">
-					<div class="inner">
-						<h1>Elmo Hsiao</h1>
-						<p>
-							Taipei, Taiwan<br />
-							Information Security Engineer<br />
-							Interest in Photograph
-						</p>
-					</div>
-				</div>
-				
-				<nav>
-					<ul>
-						<li><a href="#about">About</a></li>
-						<li><a href="http://blog.amao.com.tw">Blog</a></li>
-						<li><a href="https://github.com/amao1991">Github</a></li>
-						<li><a href="https://www.instagram.com/elmophoto.tw">Photo</a></li>
-						<li><a href="https://my.flightradar24.com/elmohsiao">Flight</a></li>
-						<li><a href="#contact">Contact</a></li>
-					</ul>
-				</nav>
-			</header>
-
-			<!-- Main -->
+			<div id="bg"></div>
+			<div id="overlay"></div>
 			<div id="main">
 
-				<!-- About -->
-				<article id="about">
-					<h2 class="major">About</h2>
-					<p>Taipei, Taiwan</p>
-					<p>
-						<ul>
-							<li>一個很魯的工程屍</li>
-							<li>愛拍些不知所云的照片，IG: <a href="https://www.instagram.com/elmophoto.tw">elmophoto.tw</a></li>
-							<li>沒有活著的感覺但又還不想死的人</li>
-							<li>但偶爾會很希望馬上能投胎</li>
-							<li>希望不要成為委屈了也無所謂的朋友</li>
-							<li>短期努力的目標是能送點禮物給未來的自己</li>
+				<!-- Header -->
+					<header id="header">
+						<h1>Adam Jensen</h1>
+						<p>Security Chief &nbsp;&bull;&nbsp; Cyborg &nbsp;&bull;&nbsp; Never asked for this</p>
+						<nav>
+							<ul>
+								<li><a href="#" class="icon brands fa-twitter"><span class="label">Twitter</span></a></li>
+								<li><a href="#" class="icon brands fa-facebook-f"><span class="label">Facebook</span></a></li>
+								<li><a href="#" class="icon brands fa-dribbble"><span class="label">Dribbble</span></a></li>
+								<li><a href="#" class="icon brands fa-github"><span class="label">Github</span></a></li>
+								<li><a href="#" class="icon solid fa-envelope"><span class="label">Email</span></a></li>
 							</ul>
-					</p>
-				</article>
+						</nav>
+					</header>
 
-				<!-- Contact -->
-				<article id="contact">
-					<h2 class="major">Contact</h2>
-					<p>fengjicamao@gmail.com</p>
-			<!-- 		<form method="post" action="#">
-						<div class="fields">
-							<div class="field half">
-								<label for="name">Name</label>
-								<input type="text" name="name" id="name" />
-							</div>
-							<div class="field half">
-								<label for="email">Email</label>
-								<input type="text" name="email" id="email" />
-							</div>
-							<div class="field">
-								<label for="message">Message</label>
-								<textarea name="message" id="message" rows="4"></textarea>
-							</div>
-						</div>
-						<ul class="actions">
-							<li><input type="submit" value="Send Message" class="primary" /></li>
-							<li><input type="reset" value="Reset" /></li>
-						</ul>
-					</form> -->
-					<!-- <ul class="icons">
-						<li><a href="#" class="icon fa-twitter"><span class="label">Twitter</span></a></li>
-						<li><a href="#" class="icon fa-facebook"><span class="label">Facebook</span></a></li>
-						<li><a href="#" class="icon fa-instagram"><span class="label">Instagram</span></a></li>
-						<li><a href="#" class="icon fa-github"><span class="label">GitHub</span></a></li>
-					</ul> -->
-				</article>
+				<!-- Footer -->
+					<footer id="footer">
+						<span class="copyright">&copy; Untitled. Design: <a href="http://html5up.net">HTML5 UP</a>.</span>
+					</footer>
 
 			</div>
-
-			<!-- Footer -->
-			<footer id="footer">
-				<p class="copyright">&copy; Elmo Hsiao. Design: <a href="https://html5up.net">HTML5 UP</a>.</p>
-			</footer>
-
 		</div>
-
-		<!-- BG -->
-		<div id="bg"></div>
-
-		<!-- Scripts -->
-		<script src="assets/js/jquery.min.js"></script>
-		<script src="assets/js/browser.min.js"></script>
-		<script src="assets/js/breakpoints.min.js"></script>
-		<script src="assets/js/util.js"></script>
-		<script src="assets/js/main.js"></script>
-
+		<script>
+			window.onload = function() { document.body.classList.remove('is-preload'); }
+			window.ontouchmove = function() { return false; }
+			window.onorientationchange = function() { document.body.scrollTop = 0; }
+		</script>
 	</body>
 </html>
