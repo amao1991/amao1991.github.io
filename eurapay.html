@@ -4,8 +4,111 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>簡易分帳系統</title>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+    <script type="module">
+        // Firebase 模組化導入
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAvnExZ-A9TG6K9XTlUrTrMSWQJXvKU2Pc",
+            authDomain: "split-expenses-76fa3.firebaseapp.com",
+            projectId: "split-expenses-76fa3",
+            storageBucket: "split-expenses-76fa3.firebasestorage.app",
+            messagingSenderId: "67801544086",
+            appId: "1:67801544086:web:88313c1498360dfaff99b7"
+        };
+
+        // 初始化 Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const balanceRef = doc(db, "expenses", "balance");
+        const historyRef = doc(db, "expenses", "history");
+
+        let balance = 0;
+        
+        async function updateBalance() {
+            const balanceDisplay = document.getElementById("balance");
+            if (balance > 0) {
+                balanceDisplay.textContent = `目前帳務：Elmo 欠 Eura ${balance} 元`;
+                balanceDisplay.className = "balance positive";
+            } else if (balance < 0) {
+                balanceDisplay.textContent = `目前帳務：Eura 欠 Elmo ${-balance} 元`;
+                balanceDisplay.className = "balance negative";
+            } else {
+                balanceDisplay.textContent = "目前帳務：雙方均等";
+                balanceDisplay.className = "balance";
+            }
+            await setDoc(balanceRef, { balance });
+        }
+        
+        async function addTransaction() {
+            const description = document.getElementById("description").value.trim();
+            const amount = parseFloat(document.getElementById("amount").value);
+            const splitType = document.getElementById("split").value;
+            if (!description) {
+                alert("請輸入帳務名稱");
+                return;
+            }
+            if (isNaN(amount) || amount <= 0) {
+                alert("請輸入有效的金額");
+                return;
+            }
+            
+            if (splitType === "equal") {
+                balance -= amount / 2;
+            } else if (splitType === "fullElmo") {
+                balance -= amount;
+            } else if (splitType === "fullEura") {
+                balance += amount;
+            }
+            
+            const historyList = document.getElementById("history");
+            const newRecord = document.createElement("li");
+            newRecord.textContent = `${description} - ${amount} 元（${splitType === "equal" ? "平分" : splitType === "fullElmo" ? "Elmo 付全額" : "Eura 付全額"}）`;
+            historyList.appendChild(newRecord);
+            await saveHistory();
+            await updateBalance();
+        }
+        
+        async function saveHistory() {
+            const historyItems = [];
+            document.querySelectorAll("#history li").forEach(li => historyItems.push(li.textContent));
+            await setDoc(historyRef, { history: historyItems });
+        }
+        
+        function confirmReset() {
+            if (confirm("確定要重置帳務與交易紀錄嗎？此操作無法還原！")) {
+                resetAll();
+            }
+        }
+        
+        async function resetAll() {
+            balance = 0;
+            document.getElementById("history").innerHTML = "";
+            await setDoc(balanceRef, { balance: 0 });
+            await setDoc(historyRef, { history: [] });
+            updateBalance();
+        }
+        
+        async function loadStoredData() {
+            try {
+                const balanceDoc = await getDoc(balanceRef);
+                if (balanceDoc.exists()) {
+                    balance = balanceDoc.data().balance;
+                }
+                const historyDoc = await getDoc(historyRef);
+                if (historyDoc.exists()) {
+                    const historyData = historyDoc.data().history;
+                    document.getElementById("history").innerHTML = historyData.map(item => `<li>${item}</li>`).join('');
+                }
+                updateBalance();
+            } catch (error) {
+                console.error("Firestore 載入錯誤: ", error);
+            }
+        }
+        
+        window.onload = loadStoredData;
+    </script>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         .container { max-width: 400px; margin: auto; }
@@ -40,107 +143,5 @@
         <h3>交易紀錄</h3>
         <ul id="history"></ul>
     </div>
-
-    <script>
-        // Firebase 設定
-        const firebaseConfig = {
-            apiKey: "AIzaSyAvnExZ-A9TG6K9XTlUrTrMSWQJXvKU2Pc",
-            authDomain: "split-expenses-76fa3.firebaseapp.com",
-            projectId: "split-expenses-76fa3",
-            storageBucket: "split-expenses-76fa3.firebasestorage.app",
-            messagingSenderId: "67801544086",
-            appId: "1:67801544086:web:88313c1498360dfaff99b7"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const balanceRef = db.collection("expenses").doc("balance");
-        const historyRef = db.collection("expenses").doc("history");
-
-        let balance = 0;
-        
-        function updateBalance() {
-            const balanceDisplay = document.getElementById("balance");
-            if (balance > 0) {
-                balanceDisplay.textContent = `目前帳務：Elmo 欠 Eura ${balance} 元`;
-                balanceDisplay.className = "balance positive";
-            } else if (balance < 0) {
-                balanceDisplay.textContent = `目前帳務：Eura 欠 Elmo ${-balance} 元`;
-                balanceDisplay.className = "balance negative";
-            } else {
-                balanceDisplay.textContent = "目前帳務：雙方均等";
-                balanceDisplay.className = "balance";
-            }
-            balanceRef.set({ balance }).catch(error => console.error("Firestore 錯誤: ", error));
-        }
-        
-        function addTransaction() {
-            const description = document.getElementById("description").value.trim();
-            const amount = parseFloat(document.getElementById("amount").value);
-            const splitType = document.getElementById("split").value;
-            if (!description) {
-                alert("請輸入帳務名稱");
-                return;
-            }
-            if (isNaN(amount) || amount <= 0) {
-                alert("請輸入有效的金額");
-                return;
-            }
-            
-            if (splitType === "equal") {
-                balance -= amount / 2;
-            } else if (splitType === "fullElmo") {
-                balance -= amount;
-            } else if (splitType === "fullEura") {
-                balance += amount;
-            }
-            
-            const historyList = document.getElementById("history");
-            const newRecord = document.createElement("li");
-            newRecord.textContent = `${description} - ${amount} 元（${splitType === "equal" ? "平分" : splitType === "fullElmo" ? "Elmo 付全額" : "Eura 付全額"}）`;
-            historyList.appendChild(newRecord);
-            saveHistory();
-            updateBalance();
-        }
-        
-        function saveHistory() {
-            const historyItems = [];
-            document.querySelectorAll("#history li").forEach(li => historyItems.push(li.textContent));
-            historyRef.set({ history: historyItems }).catch(error => console.error("Firestore 錯誤: ", error));
-        }
-        
-        function confirmReset() {
-            if (confirm("確定要重置帳務與交易紀錄嗎？此操作無法還原！")) {
-                resetAll();
-            }
-        }
-        
-        function resetAll() {
-            balance = 0;
-            document.getElementById("history").innerHTML = "";
-            balanceRef.set({ balance: 0 }).catch(error => console.error("Firestore 錯誤: ", error));
-            historyRef.set({ history: [] }).catch(error => console.error("Firestore 錯誤: ", error));
-            updateBalance();
-        }
-        
-        async function loadStoredData() {
-            try {
-                const balanceDoc = await balanceRef.get();
-                if (balanceDoc.exists) {
-                    balance = balanceDoc.data().balance;
-                }
-                const historyDoc = await historyRef.get();
-                if (historyDoc.exists) {
-                    const historyData = historyDoc.data().history;
-                    document.getElementById("history").innerHTML = historyData.map(item => `<li>${item}</li>`).join('');
-                }
-                updateBalance();
-            } catch (error) {
-                console.error("Firestore 載入錯誤: ", error);
-            }
-        }
-        
-        window.onload = loadStoredData;
-    </script>
 </body>
 </html>
