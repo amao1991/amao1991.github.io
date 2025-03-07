@@ -108,16 +108,11 @@
         }
         
         window.onload = loadStoredData;
+        
+        // **這行很重要！讓 addTransaction() 可在 HTML 按鈕 onclick 觸發**
+        window.addTransaction = addTransaction;
+        window.confirmReset = confirmReset;
     </script>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .container { max-width: 400px; margin: auto; }
-        .balance { font-size: 1.2em; margin: 10px 0; font-weight: bold; }
-        .positive { color: red; }
-        .negative { color: blue; }
-        input, button, select { margin: 5px 0; padding: 8px; width: 100%; }
-        button { cursor: pointer; }
-    </style>
 </head>
 <body>
     <div class="container">
