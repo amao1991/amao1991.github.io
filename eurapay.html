@@ -71,7 +71,7 @@
                 balanceDisplay.textContent = "目前帳務：雙方均等";
                 balanceDisplay.className = "balance";
             }
-            balanceRef.set({ balance });
+            balanceRef.set({ balance }).catch(error => console.error("Firestore 錯誤: ", error));
         }
         
         function addTransaction() {
@@ -106,7 +106,7 @@
         function saveHistory() {
             const historyItems = [];
             document.querySelectorAll("#history li").forEach(li => historyItems.push(li.textContent));
-            historyRef.set({ history: historyItems });
+            historyRef.set({ history: historyItems }).catch(error => console.error("Firestore 錯誤: ", error));
         }
         
         function confirmReset() {
@@ -118,22 +118,26 @@
         function resetAll() {
             balance = 0;
             document.getElementById("history").innerHTML = "";
-            balanceRef.set({ balance: 0 });
-            historyRef.set({ history: [] });
+            balanceRef.set({ balance: 0 }).catch(error => console.error("Firestore 錯誤: ", error));
+            historyRef.set({ history: [] }).catch(error => console.error("Firestore 錯誤: ", error));
             updateBalance();
         }
         
         async function loadStoredData() {
-            const balanceDoc = await balanceRef.get();
-            if (balanceDoc.exists) {
-                balance = balanceDoc.data().balance;
+            try {
+                const balanceDoc = await balanceRef.get();
+                if (balanceDoc.exists) {
+                    balance = balanceDoc.data().balance;
+                }
+                const historyDoc = await historyRef.get();
+                if (historyDoc.exists) {
+                    const historyData = historyDoc.data().history;
+                    document.getElementById("history").innerHTML = historyData.map(item => `<li>${item}</li>`).join('');
+                }
+                updateBalance();
+            } catch (error) {
+                console.error("Firestore 載入錯誤: ", error);
             }
-            const historyDoc = await historyRef.get();
-            if (historyDoc.exists) {
-                const historyData = historyDoc.data().history;
-                document.getElementById("history").innerHTML = historyData.map(item => `<li>${item}</li>`).join('');
-            }
-            updateBalance();
         }
         
         window.onload = loadStoredData;
