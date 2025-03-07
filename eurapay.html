@@ -36,7 +36,7 @@
                 balanceDisplay.className = "balance negative";
             } else {
                 balanceDisplay.textContent = "目前帳務：雙方均等";
-                balanceDisplay.className = "balance";
+                balanceDisplay.className = "balance neutral";
             }
             await setDoc(balanceRef, { balance });
         }
@@ -109,15 +109,24 @@
         
         window.onload = loadStoredData;
         
-        // **這行很重要！讓 addTransaction() 可在 HTML 按鈕 onclick 觸發**
         window.addTransaction = addTransaction;
         window.confirmReset = confirmReset;
     </script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 400px; margin: auto; }
+        .balance { font-size: 1.2em; margin: 10px 0; font-weight: bold; }
+        .positive { color: red; }
+        .negative { color: blue; }
+        .neutral { color: black; }
+        input, button, select { margin: 5px 0; padding: 8px; width: 100%; }
+        button { cursor: pointer; }
+    </style>
 </head>
 <body>
     <div class="container">
         <h2>分帳計算</h2>
-        <div class="balance" id="balance">目前帳務：雙方均等</div>
+        <div class="balance neutral" id="balance">目前帳務：雙方均等</div>
         
         <label for="description">名稱：</label>
         <input type="text" id="description" placeholder="輸入帳務名稱">
