@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>簡易分帳系統</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 400px; margin: auto; }
+        .balance { font-size: 1.2em; margin: 10px 0; }
+        input, button { margin: 5px 0; padding: 8px; width: 100%; }
+        button { cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>分帳計算</h2>
+        <div class="balance" id="balance">目前帳務：雙方均等</div>
+        
+        <label for="payer">付款人：</label>
+        <select id="payer">
+            <option value="Elmo">Elmo</option>
+            <option value="Eura">Eura</option>
+        </select>
+        
+        <label for="amount">金額：</label>
+        <input type="number" id="amount" placeholder="輸入金額" min="1">
+        
+        <button onclick="addTransaction()">新增帳務</button>
+        <button onclick="resetBalance()">重置帳務</button>
+        
+        <h3>交易紀錄</h3>
+        <ul id="history"></ul>
+        <button onclick="clearHistory()">清除紀錄</button>
+    </div>
+
+    <script>
+        let balance = 0; // 正數代表 Elmo 應該給 Eura，負數代表 Eura 應該給 Elmo
+        
+        function updateBalance() {
+            const balanceDisplay = document.getElementById("balance");
+            if (balance > 0) {
+                balanceDisplay.textContent = `目前帳務：Elmo 欠 Eura ${balance} 元`;
+            } else if (balance < 0) {
+                balanceDisplay.textContent = `目前帳務：Eura 欠 Elmo ${-balance} 元`;
+            } else {
+                balanceDisplay.textContent = "目前帳務：雙方均等";
+            }
+        }
+        
+        function addTransaction() {
+            const payer = document.getElementById("payer").value;
+            const amount = parseFloat(document.getElementById("amount").value);
+            if (isNaN(amount) || amount <= 0) {
+                alert("請輸入有效的金額");
+                return;
+            }
+            
+            if (payer === "Elmo") {
+                balance -= amount / 2; // Elmo 付錢，Eura 需要還一半
+            } else {
+                balance += amount / 2; // Eura 付錢，Elmo 需要還一半
+            }
+            
+            const historyList = document.getElementById("history");
+            const newRecord = document.createElement("li");
+            newRecord.textContent = `${payer} 付款 ${amount} 元`;
+            historyList.appendChild(newRecord);
+            
+            updateBalance();
+        }
+        
+        function resetBalance() {
+            balance = 0;
+            updateBalance();
+        }
+        
+        function clearHistory() {
+            document.getElementById("history").innerHTML = "";
+        }
+    </script>
+</body>
+</html>
