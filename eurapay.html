@@ -43,7 +43,7 @@
     </div>
 
     <script>
-        let balance = 0; // 正數代表 Elmo 應該給 Eura，負數代表 Eura 應該給 Elmo
+        let balance = 0;
         
         function updateBalance() {
             const balanceDisplay = document.getElementById("balance");
@@ -57,6 +57,7 @@
                 balanceDisplay.textContent = "目前帳務：雙方均等";
                 balanceDisplay.className = "balance";
             }
+            localStorage.setItem("balance", balance);
         }
         
         function addTransaction() {
@@ -69,23 +70,23 @@
             }
             
             if (splitType === "equal") {
-                if (payer === "Elmo") {
-                    balance -= amount / 2; // Elmo 付錢，Eura 需要還一半
-                } else {
-                    balance += amount / 2; // Eura 付錢，Elmo 需要還一半
-                }
+                balance += payer === "Elmo" ? -amount / 2 : amount / 2;
             } else if (splitType === "fullElmo") {
-                balance -= amount; // Elmo 幫 Eura 付全額，Eura 需要還全部
+                balance -= amount;
             } else if (splitType === "fullEura") {
-                balance += amount; // Eura 幫 Elmo 付全額，Elmo 需要還全部
+                balance += amount;
             }
             
             const historyList = document.getElementById("history");
             const newRecord = document.createElement("li");
             newRecord.textContent = `${payer} 付款 ${amount} 元（${splitType === "equal" ? "平分" : splitType === "fullElmo" ? "Elmo 幫 Eura 付全額" : "Eura 幫 Elmo 付全額"}）`;
             historyList.appendChild(newRecord);
-            
+            saveHistory();
             updateBalance();
+        }
+        
+        function saveHistory() {
+            localStorage.setItem("history", document.getElementById("history").innerHTML);
         }
         
         function confirmReset() {
@@ -97,8 +98,22 @@
         function resetAll() {
             balance = 0;
             document.getElementById("history").innerHTML = "";
+            localStorage.removeItem("balance");
+            localStorage.removeItem("history");
             updateBalance();
         }
+        
+        function loadStoredData() {
+            if (localStorage.getItem("balance")) {
+                balance = parseFloat(localStorage.getItem("balance"));
+            }
+            if (localStorage.getItem("history")) {
+                document.getElementById("history").innerHTML = localStorage.getItem("history");
+            }
+            updateBalance();
+        }
+        
+        window.onload = loadStoredData;
     </script>
 </body>
 </html>
