@@ -7,8 +7,10 @@
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         .container { max-width: 400px; margin: auto; }
-        .balance { font-size: 1.2em; margin: 10px 0; }
-        input, button { margin: 5px 0; padding: 8px; width: 100%; }
+        .balance { font-size: 1.2em; margin: 10px 0; font-weight: bold; }
+        .positive { color: red; }
+        .negative { color: blue; }
+        input, button, select { margin: 5px 0; padding: 8px; width: 100%; }
         button { cursor: pointer; }
     </style>
 </head>
@@ -26,12 +28,18 @@
         <label for="amount">金額：</label>
         <input type="number" id="amount" placeholder="輸入金額" min="1">
         
+        <label for="split">分帳方式：</label>
+        <select id="split">
+            <option value="equal">平分</option>
+            <option value="fullElmo">Elmo 幫 Eura 付全額</option>
+            <option value="fullEura">Eura 幫 Elmo 付全額</option>
+        </select>
+        
         <button onclick="addTransaction()">新增帳務</button>
-        <button onclick="resetBalance()">重置帳務</button>
+        <button onclick="confirmReset()">重置帳務與紀錄</button>
         
         <h3>交易紀錄</h3>
         <ul id="history"></ul>
-        <button onclick="clearHistory()">清除紀錄</button>
     </div>
 
     <script>
@@ -41,42 +49,55 @@
             const balanceDisplay = document.getElementById("balance");
             if (balance > 0) {
                 balanceDisplay.textContent = `目前帳務：Elmo 欠 Eura ${balance} 元`;
+                balanceDisplay.className = "balance positive";
             } else if (balance < 0) {
                 balanceDisplay.textContent = `目前帳務：Eura 欠 Elmo ${-balance} 元`;
+                balanceDisplay.className = "balance negative";
             } else {
                 balanceDisplay.textContent = "目前帳務：雙方均等";
+                balanceDisplay.className = "balance";
             }
         }
         
         function addTransaction() {
             const payer = document.getElementById("payer").value;
             const amount = parseFloat(document.getElementById("amount").value);
+            const splitType = document.getElementById("split").value;
             if (isNaN(amount) || amount <= 0) {
                 alert("請輸入有效的金額");
                 return;
             }
             
-            if (payer === "Elmo") {
-                balance -= amount / 2; // Elmo 付錢，Eura 需要還一半
-            } else {
-                balance += amount / 2; // Eura 付錢，Elmo 需要還一半
+            if (splitType === "equal") {
+                if (payer === "Elmo") {
+                    balance -= amount / 2; // Elmo 付錢，Eura 需要還一半
+                } else {
+                    balance += amount / 2; // Eura 付錢，Elmo 需要還一半
+                }
+            } else if (splitType === "fullElmo") {
+                balance -= amount; // Elmo 幫 Eura 付全額，Eura 需要還全部
+            } else if (splitType === "fullEura") {
+                balance += amount; // Eura 幫 Elmo 付全額，Elmo 需要還全部
             }
             
             const historyList = document.getElementById("history");
             const newRecord = document.createElement("li");
-            newRecord.textContent = `${payer} 付款 ${amount} 元`;
+            newRecord.textContent = `${payer} 付款 ${amount} 元（${splitType === "equal" ? "平分" : splitType === "fullElmo" ? "Elmo 幫 Eura 付全額" : "Eura 幫 Elmo 付全額"}）`;
             historyList.appendChild(newRecord);
             
             updateBalance();
         }
         
-        function resetBalance() {
-            balance = 0;
-            updateBalance();
+        function confirmReset() {
+            if (confirm("確定要重置帳務與交易紀錄嗎？此操作無法還原！")) {
+                resetAll();
+            }
         }
         
-        function clearHistory() {
+        function resetAll() {
+            balance = 0;
             document.getElementById("history").innerHTML = "";
+            updateBalance();
         }
     </script>
 </body>
