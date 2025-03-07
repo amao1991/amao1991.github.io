@@ -25,6 +25,7 @@
         const historyRef = doc(db, "expenses", "history");
 
         let balance = 0;
+        let historyData = [];
         
         function getCurrentTime() {
             return new Date().toISOString(); // 存成 UTC 標準時間
@@ -81,37 +82,35 @@
                 balance += amount;
             }
             
-            const historyList = document.getElementById("history");
-            const newRecord = document.createElement("li");
-            const formattedTime = formatLocalTime(timestamp);
-            newRecord.textContent = `[${formattedTime}] ${description} - ${amount} 元（${splitType === "equal" ? "平分" : splitType === "fullElmo" ? "Elmo 付全額" : "Eura 付全額"}）`;
-            historyList.appendChild(newRecord);
+            historyData.push({ description, amount, splitType, timestamp });
             await saveHistory();
             await updateBalance();
+            renderHistory();
             
             // 清空輸入框
             descriptionInput.value = "";
             amountInput.value = "";
         }
         
+        function renderHistory() {
+            const historyList = document.getElementById("history");
+            historyList.innerHTML = "";
+            historyData.forEach((item, index) => {
+                const formattedTime = formatLocalTime(item.timestamp);
+                const newRecord = document.createElement("li");
+                newRecord.innerHTML = `${item.description} - ${item.amount} 元（${item.splitType === "equal" ? "平分" : item.splitType === "fullElmo" ? "Elmo 付全額" : "Eura 付全額"}） <span style='color:gray;'>${formattedTime}</span> <button onclick='deleteTransaction(${index})'>刪除</button>`;
+                historyList.appendChild(newRecord);
+            });
+        }
+        
+        async function deleteTransaction(index) {
+            historyData.splice(index, 1);
+            await saveHistory();
+            renderHistory();
+        }
+        
         async function saveHistory() {
-            const historyItems = [];
-            document.querySelectorAll("#history li").forEach(li => historyItems.push(li.textContent));
-            await setDoc(historyRef, { history: historyItems });
-        }
-        
-        function confirmReset() {
-            if (confirm("確定要重置帳務與交易紀錄嗎？此操作無法還原！")) {
-                resetAll();
-            }
-        }
-        
-        async function resetAll() {
-            balance = 0;
-            document.getElementById("history").innerHTML = "";
-            await setDoc(balanceRef, { balance: 0 });
-            await setDoc(historyRef, { history: [] });
-            updateBalance();
+            await setDoc(historyRef, { history: historyData });
         }
         
         async function loadStoredData() {
@@ -122,9 +121,9 @@
                 }
                 const historyDoc = await getDoc(historyRef);
                 if (historyDoc.exists()) {
-                    const historyData = historyDoc.data().history;
-                    document.getElementById("history").innerHTML = historyData.map(item => `<li>${item}</li>`).join('');
+                    historyData = historyDoc.data().history;
                 }
+                renderHistory();
                 updateBalance();
             } catch (error) {
                 console.error("Firestore 載入錯誤: ", error);
@@ -134,43 +133,35 @@
         window.onload = loadStoredData;
         
         window.addTransaction = addTransaction;
-        window.confirmReset = confirmReset;
+        window.deleteTransaction = deleteTransaction;
+        window.confirmReset = async function() {
+            if (confirm("確定要重置帳務與交易紀錄嗎？此操作無法還原！")) {
+                balance = 0;
+                historyData = [];
+                await setDoc(balanceRef, { balance: 0 });
+                await setDoc(historyRef, { history: [] });
+                renderHistory();
+                updateBalance();
+            }
+        };
     </script>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .container { max-width: 400px; margin: auto; }
-        .balance { font-size: 1.2em; margin: 10px 0; font-weight: bold; text-align: center; }
-        .positive { color: red; }
-        .negative { color: blue; }
-        .neutral { color: black; }
-        input, button, select { margin: 5px 0; padding: 10px; width: 100%; font-size: 18px; border-radius: 8px; }
-        button { cursor: pointer; background-color: #007bff; color: white; border: none; }
-        button:hover { background-color: #0056b3; }
-        ul { padding: 0; list-style-type: none; }
-        li { padding: 12px; margin-bottom: 5px; border-bottom: 1px solid #ddd; word-wrap: break-word; }
-    </style>
 </head>
 <body>
     <div class="container">
         <h2 style="text-align: center;">分帳計算</h2>
         <div class="balance neutral" id="balance">目前帳務：雙方均等</div>
-        
         <label for="description">名稱：</label>
         <input type="text" id="description" placeholder="輸入帳務名稱">
-        
         <label for="amount">金額：</label>
         <input type="number" id="amount" placeholder="輸入金額" min="1">
-        
         <label for="split">分帳方式：</label>
         <select id="split">
             <option value="equal">平分</option>
             <option value="fullElmo">Elmo 付全額</option>
             <option value="fullEura">Eura 付全額</option>
         </select>
-        
         <button onclick="addTransaction()">新增帳務</button>
         <button onclick="confirmReset()">重置帳務與紀錄</button>
-        
         <h3>交易紀錄</h3>
         <ul id="history"></ul>
     </div>
