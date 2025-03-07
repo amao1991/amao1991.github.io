@@ -56,9 +56,13 @@
         }
         
         async function addTransaction() {
-            const description = document.getElementById("description").value.trim();
-            const amount = parseFloat(document.getElementById("amount").value);
+            const descriptionInput = document.getElementById("description");
+            const amountInput = document.getElementById("amount");
             const splitType = document.getElementById("split").value;
+            
+            const description = descriptionInput.value.trim();
+            const amount = parseFloat(amountInput.value);
+            
             if (!description) {
                 alert("請輸入帳務名稱");
                 return;
@@ -84,6 +88,10 @@
             historyList.appendChild(newRecord);
             await saveHistory();
             await updateBalance();
+            
+            // 清空輸入框
+            descriptionInput.value = "";
+            amountInput.value = "";
         }
         
         async function saveHistory() {
@@ -128,18 +136,6 @@
         window.addTransaction = addTransaction;
         window.confirmReset = confirmReset;
     </script>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .container { max-width: 400px; margin: auto; }
-        .balance { font-size: 1.2em; margin: 10px 0; font-weight: bold; }
-        .positive { color: red; }
-        .negative { color: blue; }
-        .neutral { color: black; }
-        input, button, select { margin: 5px 0; padding: 8px; width: 100%; font-size: 16px; }
-        button { cursor: pointer; }
-        ul { padding: 0; list-style-type: none; }
-        li { padding: 8px; border-bottom: 1px solid #ccc; }
-    </style>
 </head>
 <body>
     <div class="container">
