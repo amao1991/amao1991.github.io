@@ -136,10 +136,22 @@
         window.addTransaction = addTransaction;
         window.confirmReset = confirmReset;
     </script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 400px; margin: auto; }
+        .balance { font-size: 1.2em; margin: 10px 0; font-weight: bold; text-align: center; }
+        .positive { color: red; }
+        .negative { color: blue; }
+        .neutral { color: black; }
+        input, button, select { margin: 5px 0; padding: 8px; width: 100%; font-size: 16px; }
+        button { cursor: pointer; }
+        ul { padding: 0; list-style-type: none; }
+        li { padding: 8px; border-bottom: 1px solid #ccc; word-wrap: break-word; }
+    </style>
 </head>
 <body>
     <div class="container">
-        <h2>分帳計算</h2>
+        <h2 style="text-align: center;">分帳計算</h2>
         <div class="balance neutral" id="balance">目前帳務：雙方均等</div>
         
         <label for="description">名稱：</label>
