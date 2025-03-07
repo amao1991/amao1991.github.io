@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>簡易分帳系統</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; }
         .container { max-width: 400px; margin: auto; }
@@ -19,11 +21,8 @@
         <h2>分帳計算</h2>
         <div class="balance" id="balance">目前帳務：雙方均等</div>
         
-        <label for="payer">付款人：</label>
-        <select id="payer">
-            <option value="Elmo">Elmo</option>
-            <option value="Eura">Eura</option>
-        </select>
+        <label for="description">名稱：</label>
+        <input type="text" id="description" placeholder="輸入帳務名稱">
         
         <label for="amount">金額：</label>
         <input type="number" id="amount" placeholder="輸入金額" min="1">
@@ -31,8 +30,8 @@
         <label for="split">分帳方式：</label>
         <select id="split">
             <option value="equal">平分</option>
-            <option value="fullElmo">Elmo 幫 Eura 付全額</option>
-            <option value="fullEura">Eura 幫 Elmo 付全額</option>
+            <option value="fullElmo">Elmo 付全額</option>
+            <option value="fullEura">Eura 付全額</option>
         </select>
         
         <button onclick="addTransaction()">新增帳務</button>
@@ -43,6 +42,21 @@
     </div>
 
     <script>
+        // Firebase 設定
+        const firebaseConfig = {
+            apiKey: "AIzaSyAvnExZ-A9TG6K9XTlUrTrMSWQJXvKU2Pc",
+            authDomain: "split-expenses-76fa3.firebaseapp.com",
+            projectId: "split-expenses-76fa3",
+            storageBucket: "split-expenses-76fa3.firebasestorage.app",
+            messagingSenderId: "67801544086",
+            appId: "1:67801544086:web:88313c1498360dfaff99b7"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const balanceRef = db.collection("expenses").doc("balance");
+        const historyRef = db.collection("expenses").doc("history");
+
         let balance = 0;
         
         function updateBalance() {
@@ -57,20 +71,24 @@
                 balanceDisplay.textContent = "目前帳務：雙方均等";
                 balanceDisplay.className = "balance";
             }
-            localStorage.setItem("balance", balance);
+            balanceRef.set({ balance });
         }
         
         function addTransaction() {
-            const payer = document.getElementById("payer").value;
+            const description = document.getElementById("description").value.trim();
             const amount = parseFloat(document.getElementById("amount").value);
             const splitType = document.getElementById("split").value;
+            if (!description) {
+                alert("請輸入帳務名稱");
+                return;
+            }
             if (isNaN(amount) || amount <= 0) {
                 alert("請輸入有效的金額");
                 return;
             }
             
             if (splitType === "equal") {
-                balance += payer === "Elmo" ? -amount / 2 : amount / 2;
+                balance -= amount / 2;
             } else if (splitType === "fullElmo") {
                 balance -= amount;
             } else if (splitType === "fullEura") {
@@ -79,14 +97,16 @@
             
             const historyList = document.getElementById("history");
             const newRecord = document.createElement("li");
-            newRecord.textContent = `${payer} 付款 ${amount} 元（${splitType === "equal" ? "平分" : splitType === "fullElmo" ? "Elmo 幫 Eura 付全額" : "Eura 幫 Elmo 付全額"}）`;
+            newRecord.textContent = `${description} - ${amount} 元（${splitType === "equal" ? "平分" : splitType === "fullElmo" ? "Elmo 付全額" : "Eura 付全額"}）`;
             historyList.appendChild(newRecord);
             saveHistory();
             updateBalance();
         }
         
         function saveHistory() {
-            localStorage.setItem("history", document.getElementById("history").innerHTML);
+            const historyItems = [];
+            document.querySelectorAll("#history li").forEach(li => historyItems.push(li.textContent));
+            historyRef.set({ history: historyItems });
         }
         
         function confirmReset() {
@@ -98,17 +118,20 @@
         function resetAll() {
             balance = 0;
             document.getElementById("history").innerHTML = "";
-            localStorage.removeItem("balance");
-            localStorage.removeItem("history");
+            balanceRef.set({ balance: 0 });
+            historyRef.set({ history: [] });
             updateBalance();
         }
         
-        function loadStoredData() {
-            if (localStorage.getItem("balance")) {
-                balance = parseFloat(localStorage.getItem("balance"));
+        async function loadStoredData() {
+            const balanceDoc = await balanceRef.get();
+            if (balanceDoc.exists) {
+                balance = balanceDoc.data().balance;
             }
-            if (localStorage.getItem("history")) {
-                document.getElementById("history").innerHTML = localStorage.getItem("history");
+            const historyDoc = await historyRef.get();
+            if (historyDoc.exists) {
+                const historyData = historyDoc.data().history;
+                document.getElementById("history").innerHTML = historyData.map(item => `<li>${item}</li>`).join('');
             }
             updateBalance();
         }
