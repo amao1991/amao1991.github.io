@@ -37,21 +37,18 @@
             const month = String(localTime.getMonth() + 1).padStart(2, '0');
             const day = String(localTime.getDate()).padStart(2, '0');
             const hours = String(localTime.getHours()).padStart(2, '0');
-            const minutes = String(localTime.getMinutes()).padStart(2, '0');
+            const minutes = String(localTime.getUTCMinutes()).padStart(2, '0');
             return `${year}-${month}-${day} ${hours}:${minutes}`;
         }
         
         async function updateBalance() {
             const balanceDisplay = document.getElementById("balance");
             if (balance > 0) {
-                balanceDisplay.textContent = `目前帳務：Elmo 欠 Eura ${balance} 元`;
-                balanceDisplay.className = "balance positive";
+                balanceDisplay.innerHTML = `目前帳務：<span class='positive'>Elmo 欠 Eura ${balance} 元</span>`;
             } else if (balance < 0) {
-                balanceDisplay.textContent = `目前帳務：Eura 欠 Elmo ${-balance} 元`;
-                balanceDisplay.className = "balance negative";
+                balanceDisplay.innerHTML = `目前帳務：<span class='negative'>Eura 欠 Elmo ${-balance} 元</span>`;
             } else {
-                balanceDisplay.textContent = "目前帳務：雙方均等";
-                balanceDisplay.className = "balance neutral";
+                balanceDisplay.innerHTML = "目前帳務：<span class='neutral'>雙方均等</span>";
             }
             await setDoc(balanceRef, { balance });
         }
@@ -98,13 +95,24 @@
             historyData.forEach((item) => {
                 const formattedTime = formatLocalTime(item.timestamp);
                 const newRecord = document.createElement("li");
-                newRecord.innerHTML = `${item.description} - ${item.amount} 元（${item.splitType === "equal" ? "平分" : item.splitType === "fullElmo" ? "Elmo 付全額" : "Eura 付全額"}） <span style='color:gray;'>${formattedTime}</span>`;
+                newRecord.innerHTML = `${item.description} - ${item.amount} 元（${item.splitType === "equal" ? "平分" : item.splitType === "fullElmo" ? "Elmo 付全額" : "Eura 付全額"}） <span class='timestamp'>${formattedTime}</span>`;
                 historyList.appendChild(newRecord);
             });
         }
         
         async function saveHistory() {
             await setDoc(historyRef, { history: historyData });
+        }
+        
+        async function confirmReset() {
+            if (confirm("確定要重置帳務與交易紀錄嗎？此操作無法還原！")) {
+                balance = 0;
+                historyData = [];
+                await setDoc(balanceRef, { balance: 0 });
+                await setDoc(historyRef, { history: [] });
+                renderHistory();
+                updateBalance();
+            }
         }
         
         async function loadStoredData() {
@@ -127,23 +135,25 @@
         window.onload = loadStoredData;
         
         window.addTransaction = addTransaction;
+        window.confirmReset = confirmReset;
     </script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 400px; margin: auto; }
+        .balance { font-size: 1.2em; margin: 10px 0; font-weight: bold; text-align: center; }
+        .positive { color: red; font-weight: bold; }
+        .negative { color: blue; font-weight: bold; }
+        .neutral { color: black; font-weight: bold; }
+        input, button, select { margin: 5px 0; padding: 10px; width: 100%; font-size: 18px; border-radius: 8px; }
+        ul { padding: 0; list-style-type: none; }
+        li { padding: 12px; margin-bottom: 5px; border-bottom: 1px solid #ddd; word-wrap: break-word; }
+        .timestamp { color: gray; font-size: 0.9em; }
+    </style>
 </head>
 <body>
     <div class="container">
         <h2 style="text-align: center;">分帳計算</h2>
-        <div class="balance neutral" id="balance">目前帳務：雙方均等</div>
-        <label for="description">名稱：</label>
-        <input type="text" id="description" placeholder="輸入帳務名稱">
-        <label for="amount">金額：</label>
-        <input type="number" id="amount" placeholder="輸入金額" min="1">
-        <label for="split">分帳方式：</label>
-        <select id="split">
-            <option value="equal">平分</option>
-            <option value="fullElmo">Elmo 付全額</option>
-            <option value="fullEura">Eura 付全額</option>
-        </select>
-        <button onclick="addTransaction()">新增帳務</button>
+        <div class="balance" id="balance">目前帳務：雙方均等</div>
         <button onclick="confirmReset()">重置帳務與紀錄</button>
         <h3>交易紀錄</h3>
         <ul id="history"></ul>
